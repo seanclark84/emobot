@@ -1,23 +1,61 @@
 from twython import Twython, TwythonError
-from random import sample
+from random import sample, choice
 from time import sleep
+import datetime
+import sys
+import configparser
 
-APP_KEY = 'T5fCyMA9KCvgqwOl1OjxB3AIJ'
-APP_SECRET = 'yvdRRs4Di12vsHtoztdGcMibN7flr7MBjjJ006nxvhjQgnXNR5'
-OAUTH_TOKEN = '4115035882-Z42eM4M8e1GvxG8wd8OptgKLf5pg4IbyDVrW64I'
-OAUTH_TOKEN_SECRET = '4UffQdefudVAWhqkfXO0RUBck71ot8crn7ipbJJFX6qrE'
+file = sys.argv[1]
+config = configparser.ConfigParser()
+config.read(file)
 
+APP_KEY = config.get('authentication', 'app_key') 
+APP_SECRET = config.get('authentication', 'app_secret')
+OAUTH_TOKEN = config.get('authentication', 'token')
+OAUTH_TOKEN_SECRET = config.get('authentication', 'token_secret')
+
+emotion = {'date':None, 'message':None}
+
+def get_emotion(twitter):
+    currentdate = datetime.datetime.now().date()
+    if currentdate != emotion['date']:
+        emotion['date'] = currentdate
+        emotion['message'] = "I am " + generate_emotion()
+        twitter.update_status(status="Today " + emotion['message'] + "...")
+    return emotion['message']
+    
+def generate_emotion():
+    with open('emotions.txt') as f:
+        content = f.readlines()
+    content = list(map(lambda s: s.strip(), content))
+    print(content)
+    return choice(content)
+
+# Main functionality
 while True:
+    # create twitter interface
     twitter = Twython(APP_KEY, APP_SECRET,
                   OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
-
-    result = twitter.search(q='i am happy',lang='en')
+    
+    # generate an emotion per day
+    emo = get_emotion(twitter)
+    print("Emotion is " + emo)
+    
+    # get the results
+    result = twitter.search(q=emo,lang='en')
     tweets = result['statuses']
+    
+    # take a sample of the results
     sample_tweets = sample(tweets, 5)
-    print(sample_tweets)
+    
+    # attempt to tweet
     for tweet in sample_tweets:
         try:
+            print("Retweeting something: " + tweet['id_str'])
             twitter.retweet(id = tweet['id'])
         except TwythonError: 
             print('Error caught - ignoring')
-    sleep(60*15)
+    #sleep(60*15)
+    sleep(60*10)
+    
+
