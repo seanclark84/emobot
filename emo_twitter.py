@@ -46,7 +46,7 @@ while True:
     tweets = result['statuses']
     
     # take a sample of the results
-    sample_tweets = sample(tweets, 5)
+    sample_tweets = sample(tweets, 10)
     
     # attempt to tweet
     for tweet in sample_tweets:
