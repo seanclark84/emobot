@@ -13,6 +13,7 @@ APP_KEY = config.get('authentication', 'app_key')
 APP_SECRET = config.get('authentication', 'app_secret')
 OAUTH_TOKEN = config.get('authentication', 'token')
 OAUTH_TOKEN_SECRET = config.get('authentication', 'token_secret')
+MAX_RESULTS = 10
 
 emotion = {'date':None, 'message':None}
 
@@ -46,7 +47,7 @@ while True:
     tweets = result['statuses']
     
     # take a sample of the results
-    sample_tweets = sample(tweets, 10)
+    sample_tweets = tweets if len(tweets) < MAX_RESULTS else sample(tweets, MAX_RESULTS)
     
     # attempt to tweet
     for tweet in sample_tweets:
